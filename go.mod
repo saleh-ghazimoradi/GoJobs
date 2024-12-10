@@ -10,5 +10,6 @@ require (
 require (
 	github.com/caarlos0/env v3.5.0+incompatible // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 )
