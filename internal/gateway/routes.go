@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"github.com/saleh-ghazimoradi/GoJobs/logger"
 	"github.com/saleh-ghazimoradi/GoJobs/utils"
@@ -8,10 +9,12 @@ import (
 )
 
 func registerRoutes() *httprouter.Router {
-	_, err := utils.PostConnection()
+	db, err := utils.PostConnection()
 	if err != nil {
 		logger.Logger.Error(err.Error())
 	}
+
+	fmt.Println(db)
 
 	router := httprouter.New()
 	router.NotFound = http.HandlerFunc(nil)
