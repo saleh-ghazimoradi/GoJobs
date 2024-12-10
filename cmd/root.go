@@ -1,26 +1,38 @@
 package cmd
 
 import (
+	"github.com/saleh-ghazimoradi/GoJobs/config"
+	"github.com/saleh-ghazimoradi/GoJobs/logger"
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 )
 
-// rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "GoJobs",
 	Short: "A brief description of your application",
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	err := rootCmd.Execute()
+	err := os.Setenv("TZ", time.UTC.String())
+	if err != nil {
+		panic(err)
+	}
+
+	err = rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
 }
 
 func init() {
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	cobra.OnInitialize(initConfig)
+}
+
+func initConfig() {
+	err := config.LoadingConfig()
+	if err != nil {
+		logger.Logger.Error("there went something wrong while loading config file")
+	}
 }
