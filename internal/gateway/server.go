@@ -16,7 +16,7 @@ import (
 var wg sync.WaitGroup
 
 func Server() error {
-	router := http.NewServeMux()
+	router := registerRoutes()
 	srv := &http.Server{
 		Addr:         config.AppConfig.ServerConfig.Port,
 		Handler:      router,
