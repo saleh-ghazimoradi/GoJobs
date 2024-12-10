@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	_ "github.com/lib/pq"
 	"github.com/saleh-ghazimoradi/GoJobs/config"
 	"github.com/saleh-ghazimoradi/GoJobs/logger"
 )
