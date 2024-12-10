@@ -23,6 +23,16 @@ type ServerConfig struct {
 }
 
 type DBConfig struct {
+	DbHost       string        `env:"DB_HOST,required"`
+	DbPort       string        `env:"DB_PORT,required"`
+	DbUser       string        `env:"DB_USER,required"`
+	DbPassword   string        `env:"DB_PASSWORD,required"`
+	DbName       string        `env:"DB_NAME,required"`
+	DbSslMode    string        `env:"DB_SSLMODE,required"`
+	MaxOpenConns int           `env:"DB_MAX_OPEN_CONNECTIONS,required"`
+	MaxIdleConns int           `env:"DB_MAX_IDLE_CONNECTIONS,required"`
+	MaxIdleTime  time.Duration `env:"DB_MAX_IDLE_TIME,required"`
+	Timeout      time.Duration `env:"DB_TIMEOUT,required"`
 }
 
 func LoadingConfig() error {
