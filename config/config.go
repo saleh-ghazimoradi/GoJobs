@@ -12,6 +12,11 @@ var AppConfig *Config
 type Config struct {
 	ServerConfig ServerConfig
 	DBConfig     DBConfig
+	JWT          JWT
+}
+
+type JWT struct {
+	SecretKEY string `env:"JWT_SECRET"`
 }
 
 type ServerConfig struct {
