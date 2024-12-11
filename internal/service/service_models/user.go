@@ -12,3 +12,9 @@ type User struct {
 	IsAdmin        bool      `json:"is_admin"`
 	ProfilePicture string    `json:"profile_picture"`
 }
+
+type UserPayload struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
+}
