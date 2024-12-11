@@ -1,8 +1,9 @@
 package gateway
 
 import (
-	"fmt"
 	"github.com/julienschmidt/httprouter"
+	"github.com/saleh-ghazimoradi/GoJobs/internal/repository"
+	"github.com/saleh-ghazimoradi/GoJobs/internal/service"
 	"github.com/saleh-ghazimoradi/GoJobs/logger"
 	"github.com/saleh-ghazimoradi/GoJobs/utils"
 	"net/http"
@@ -14,12 +15,19 @@ func registerRoutes() *httprouter.Router {
 		logger.Logger.Error(err.Error())
 	}
 
-	fmt.Println(db)
-
+	userDB := repository.NewUserRepository(db, db)
+	userService := service.NewUserService(userDB)
+	userHandler := NewUserHandler(userService)
+	authService := service.NewAuthenticateService(userDB)
+	authHandler := NewAuthenticateHandler(authService)
 	router := httprouter.New()
-	router.NotFound = http.HandlerFunc(nil)
-	router.MethodNotAllowed = http.HandlerFunc(nil)
+	router.NotFound = http.HandlerFunc(notFoundRouter)
+	router.MethodNotAllowed = http.HandlerFunc(methodNotAllowedResponse)
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", healthCheckHandler)
+
+	router.HandlerFunc(http.MethodPost, "/v1/login", authHandler.loginHandler)
+	router.HandlerFunc(http.MethodPost, "/v1/register", authHandler.registerHandler)
+	router.HandlerFunc(http.MethodGet, "/v1/users/:id", userHandler.getUserByIdHandler)
 
 	return router
 }
