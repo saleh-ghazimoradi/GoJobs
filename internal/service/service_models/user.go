@@ -18,3 +18,9 @@ type UserPayload struct {
 	Password string `json:"password" validate:"required,min=3,max=72"`
 	Email    string `json:"email" validate:"required,email,max=255"`
 }
+
+type UpdateUserPayload struct {
+	Username string `json:"username" validate:"max=100"`
+	Password string `json:"password"`
+	Email    string `json:"email" validate:"email,max=255"`
+}
