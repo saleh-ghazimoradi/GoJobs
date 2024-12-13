@@ -9,6 +9,7 @@ import (
 
 type User interface {
 	GetUserById(ctx context.Context, id int64) (*service_models.User, error)
+	UpdateUserProfile(ctx context.Context, id int64, username, email string) (*service_models.User, error)
 	GetWithTXT(tx *sql.Tx) User
 }
 
@@ -18,6 +19,11 @@ type userService struct {
 
 func (u *userService) GetUserById(ctx context.Context, id int64) (*service_models.User, error) {
 	return u.userRepo.GetUserById(ctx, id)
+}
+
+func (u *userService) UpdateUserProfile(ctx context.Context, id int64, username, email string) (*service_models.User, error) {
+	user := &service_models.User{ID: id, Username: username, Email: email}
+	return u.userRepo.UpdateUserProfile(ctx, user)
 }
 
 func (u *userService) GetWithTXT(tx *sql.Tx) User {
