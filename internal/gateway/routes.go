@@ -20,6 +20,11 @@ func registerRoutes() http.Handler {
 	userHandler := NewUserHandler(userService)
 	authService := service.NewAuthenticateService(userDB)
 	authHandler := NewAuthenticateHandler(authService)
+
+	jobDB := repository.NewJobRepository(db, db)
+	jobService := service.NewJobService(jobDB)
+	jobHandler := NewJob(jobService)
+
 	router := httprouter.New()
 	router.NotFound = http.HandlerFunc(notFoundRouter)
 	router.MethodNotAllowed = http.HandlerFunc(methodNotAllowedResponse)
@@ -30,6 +35,9 @@ func registerRoutes() http.Handler {
 	router.Handler(http.MethodGet, "/v1/users/:id", AuthMiddleware(http.HandlerFunc(userHandler.getUserByIdHandler)))
 	router.Handler(http.MethodPut, "/v1/users/:id", AuthMiddleware(http.HandlerFunc(userHandler.UpdateUserProfileHandler)))
 	router.Handler(http.MethodPost, "/v1/users/:id/picture", AuthMiddleware(http.HandlerFunc(userHandler.UpdateUserProfilePictureHandler)))
+
+	router.Handler(http.MethodPost, "/v1/jobs", AuthMiddleware(http.HandlerFunc(jobHandler.CreateJobHandler)))
+	router.Handler(http.MethodGet, "/v1/jobs", AuthMiddleware(http.HandlerFunc(jobHandler.GetAllJobsHandler)))
 
 	return router
 }

@@ -35,10 +35,24 @@ func (j *job) CreateJobHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := writeJSON(w, http.StatusCreated, createdJob); err != nil {
+	if err = jsonResponse(w, http.StatusCreated, createdJob); err != nil {
 		internalServerError(w, r, err)
 	}
 
+}
+
+func (j *job) GetAllJobsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	jobs, err := j.jobService.GetAllJobs(ctx)
+	if err != nil {
+		internalServerError(w, r, err)
+	}
+
+	if err = jsonResponse(w, http.StatusOK, jobs); err != nil {
+		internalServerError(w, r, err)
+	}
 }
 
 func NewJob(jobService service.Job) *job {
