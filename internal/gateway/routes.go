@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func registerRoutes() *httprouter.Router {
+func registerRoutes() http.Handler {
 	db, err := utils.PostConnection()
 	if err != nil {
 		logger.Logger.Error(err.Error())
@@ -27,7 +27,9 @@ func registerRoutes() *httprouter.Router {
 
 	router.HandlerFunc(http.MethodPost, "/v1/login", authHandler.loginHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/register", authHandler.registerHandler)
-	router.HandlerFunc(http.MethodGet, "/v1/users/:id", userHandler.getUserByIdHandler)
+	router.Handler(http.MethodGet, "/v1/users/:id", AuthMiddleware(http.HandlerFunc(userHandler.getUserByIdHandler)))
+	router.Handler(http.MethodPut, "/v1/users/:id", AuthMiddleware(http.HandlerFunc(userHandler.UpdateUserProfileHandler)))
+	router.Handler(http.MethodPost, "/v1/users/:id/picture", AuthMiddleware(http.HandlerFunc(userHandler.UpdateUserProfilePictureHandler)))
 
 	return router
 }
