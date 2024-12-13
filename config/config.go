@@ -13,10 +13,15 @@ type Config struct {
 	ServerConfig ServerConfig
 	DBConfig     DBConfig
 	JWT          JWT
+	UploadDIR    UploadDIR
 }
 
 type JWT struct {
 	SecretKEY string `env:"JWT_SECRET"`
+}
+
+type UploadDIR struct {
+	Upload string `env:"UPLOAD_DIR"`
 }
 
 type ServerConfig struct {
