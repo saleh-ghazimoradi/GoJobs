@@ -28,3 +28,14 @@ func GenerateToken(username string, userID int64, isAdmin bool) (string, error) 
 
 	return token.SignedString([]byte(config.AppConfig.JWT.SecretKEY))
 }
+
+func ValidateToken(tokenString string) (*Claims, error) {
+	claims := &Claims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(config.AppConfig.JWT.SecretKEY), nil
+	})
+	if err != nil || !token.Valid {
+		return nil, err
+	}
+	return claims, nil
+}
