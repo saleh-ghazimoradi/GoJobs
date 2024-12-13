@@ -12,6 +12,7 @@ type User interface {
 	GetUserById(ctx context.Context, id int64) (*service_models.User, error)
 	GetUserByUsername(ctx context.Context, username string) (*service_models.User, error)
 	UpdateUserProfile(ctx context.Context, user *service_models.User) (*service_models.User, error)
+	UpdateUserProfilePicture(ctx context.Context, id int64, picture string) error
 	GetWithTXT(tx *sql.Tx) User
 }
 
@@ -89,6 +90,20 @@ func (u *userRepository) UpdateUserProfile(ctx context.Context, user *service_mo
 		}
 	}
 	return user, nil
+}
+
+func (u *userRepository) UpdateUserProfilePicture(ctx context.Context, id int64, picture string) error {
+	query := `UPDATE users SET profile_picture = $1 WHERE id = $2`
+	_, err := u.dbWrite.ExecContext(ctx, query, picture, id)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
+	return nil
 }
 
 func (u *userRepository) GetWithTXT(tx *sql.Tx) User {
