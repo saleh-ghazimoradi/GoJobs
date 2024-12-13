@@ -9,6 +9,7 @@ import (
 
 type Job interface {
 	CreateJob(ctx context.Context, job *service_models.Job) (*service_models.Job, error)
+	GetAllJobs(ctx context.Context) ([]*service_models.Job, error)
 	GetWithTXT(tx *sql.Tx) Job
 }
 
@@ -18,6 +19,10 @@ type jobService struct {
 
 func (j *jobService) CreateJob(ctx context.Context, job *service_models.Job) (*service_models.Job, error) {
 	return j.jobRepo.CreateJob(ctx, job)
+}
+
+func (j *jobService) GetAllJobs(ctx context.Context) ([]*service_models.Job, error) {
+	return j.jobRepo.GetAllJobs(ctx)
 }
 
 func (j *jobService) GetWithTXT(tx *sql.Tx) Job {
