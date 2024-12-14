@@ -12,6 +12,7 @@ import (
 type Authenticate interface {
 	RegisterUser(ctx context.Context, user *service_models.User) error
 	LoginUser(ctx context.Context, username, password string) (string, error)
+	ForgotPassword(ctx context.Context, username string) (string, error)
 	GetWithTXT(tx *sql.Tx) Authenticate
 }
 
@@ -44,6 +45,24 @@ func (a *authService) GetWithTXT(tx *sql.Tx) Authenticate {
 	return &authService{
 		userRepo: a.userRepo.GetWithTXT(tx),
 	}
+}
+
+func (a *authService) ForgotPassword(ctx context.Context, username string) (string, error) {
+	user, err := a.userRepo.GetUserByUsername(ctx, username)
+	if err != nil {
+		return "", err
+	}
+	generatedPassword := utils.GeneratePassword(6)
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(generatedPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	user.Password = string(hashPassword)
+
+	if err = a.userRepo.UpdateUserPassword(ctx, user); err != nil {
+		return "", err
+	}
+	return generatedPassword, nil
 }
 
 func NewAuthenticateService(userRepo repository.User) Authenticate {

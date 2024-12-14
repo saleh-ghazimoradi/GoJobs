@@ -14,6 +14,7 @@ type User interface {
 	UpdateUserProfile(ctx context.Context, user *service_models.User) (*service_models.User, error)
 	UpdateUserProfilePicture(ctx context.Context, id int64, picture string) error
 	GetAllUsers(ctx context.Context) ([]*service_models.User, error)
+	UpdateUserPassword(ctx context.Context, user *service_models.User) error
 	GetWithTXT(tx *sql.Tx) User
 }
 
@@ -130,6 +131,20 @@ func (u *userRepository) GetAllUsers(ctx context.Context) ([]*service_models.Use
 		users = append(users, &user)
 	}
 	return users, nil
+}
+
+func (u *userRepository) UpdateUserPassword(ctx context.Context, user *service_models.User) error {
+	query := `UPDATE users SET password = $1 WHERE id = $2`
+	_, err := u.dbWrite.ExecContext(ctx, query, user.Password, user.ID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
+	return nil
 }
 
 func (u *userRepository) GetWithTXT(tx *sql.Tx) User {

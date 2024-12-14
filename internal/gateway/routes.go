@@ -29,6 +29,7 @@ func registerRoutes() http.Handler {
 	router.NotFound = http.HandlerFunc(notFoundRouter)
 	router.MethodNotAllowed = http.HandlerFunc(methodNotAllowedResponse)
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", healthCheckHandler)
+	router.HandlerFunc(http.MethodPost, "/v1/forgotpassword", authHandler.ForgotPasswordHandler)
 
 	router.HandlerFunc(http.MethodPost, "/v1/login", authHandler.loginHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/register", authHandler.registerHandler)
