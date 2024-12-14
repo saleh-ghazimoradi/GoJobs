@@ -12,6 +12,7 @@ type Job interface {
 	GetAllJobs(ctx context.Context) ([]*service_models.Job, error)
 	GetAllJobsByUserID(ctx context.Context, userID int64) ([]*service_models.Job, error)
 	GetJobById(ctx context.Context, id int64) (*service_models.Job, error)
+	UpdateJob(ctx context.Context, job *service_models.Job) (*service_models.Job, error)
 	GetWithTXT(tx *sql.Tx) Job
 }
 
@@ -88,6 +89,21 @@ func (j *jobRepository) GetJobById(ctx context.Context, id int64) (*service_mode
 		}
 	}
 	return &job, nil
+}
+
+func (j *jobRepository) UpdateJob(ctx context.Context, job *service_models.Job) (*service_models.Job, error) {
+	query := `UPDATE jobs SET title = $1, description = $2, company = $3, location = $4, salary = $5 WHERE id = $6`
+	_, err := j.dbWrite.ExecContext(ctx, query, &job.Title, &job.Description, &job.Company, &job.Location, &job.Salary, &job.ID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return job, nil
 }
 
 func (j *jobRepository) GetWithTXT(tx *sql.Tx) Job {
