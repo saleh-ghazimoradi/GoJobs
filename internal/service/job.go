@@ -11,6 +11,7 @@ type Job interface {
 	CreateJob(ctx context.Context, job *service_models.Job) (*service_models.Job, error)
 	GetAllJobs(ctx context.Context) ([]*service_models.Job, error)
 	GetAllJobsByUserID(ctx context.Context, userID int64) ([]*service_models.Job, error)
+	GetJobById(ctx context.Context, id int64) (*service_models.Job, error)
 	GetWithTXT(tx *sql.Tx) Job
 }
 
@@ -28,6 +29,10 @@ func (j *jobService) GetAllJobs(ctx context.Context) ([]*service_models.Job, err
 
 func (j *jobService) GetAllJobsByUserID(ctx context.Context, userID int64) ([]*service_models.Job, error) {
 	return j.jobRepo.GetAllJobsByUserID(ctx, userID)
+}
+
+func (j *jobService) GetJobById(ctx context.Context, id int64) (*service_models.Job, error) {
+	return j.jobRepo.GetJobById(ctx, id)
 }
 
 func (j *jobService) GetWithTXT(tx *sql.Tx) Job {

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"github.com/saleh-ghazimoradi/GoJobs/internal/service/service_models"
 )
 
@@ -10,6 +11,7 @@ type Job interface {
 	CreateJob(ctx context.Context, job *service_models.Job) (*service_models.Job, error)
 	GetAllJobs(ctx context.Context) ([]*service_models.Job, error)
 	GetAllJobsByUserID(ctx context.Context, userID int64) ([]*service_models.Job, error)
+	GetJobById(ctx context.Context, id int64) (*service_models.Job, error)
 	GetWithTXT(tx *sql.Tx) Job
 }
 
@@ -70,6 +72,22 @@ func (j *jobRepository) GetAllJobsByUserID(ctx context.Context, userID int64) ([
 		return nil, err
 	}
 	return jobs, nil
+}
+
+func (j *jobRepository) GetJobById(ctx context.Context, id int64) (*service_models.Job, error) {
+	query := `SELECT id, title, description, location, company, salary, created_at, user_id FROM jobs WHERE id = $1`
+
+	var job service_models.Job
+	err := j.dbRead.QueryRowContext(ctx, query, id).Scan(&job.ID, &job.Title, &job.Description, &job.Location, &job.Company, &job.Salary, &job.CreatedAt, &job.UserID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+	return &job, nil
 }
 
 func (j *jobRepository) GetWithTXT(tx *sql.Tx) Job {
