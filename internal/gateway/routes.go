@@ -36,8 +36,9 @@ func registerRoutes() http.Handler {
 	router.Handler(http.MethodPut, "/v1/users/:id", AuthMiddleware(http.HandlerFunc(userHandler.UpdateUserProfileHandler)))
 	router.Handler(http.MethodPost, "/v1/users/:id/picture", AuthMiddleware(http.HandlerFunc(userHandler.UpdateUserProfilePictureHandler)))
 
+	router.HandlerFunc(http.MethodGet, "/v1/jobs", jobHandler.GetAllJobsHandler)
 	router.Handler(http.MethodPost, "/v1/jobs", AuthMiddleware(http.HandlerFunc(jobHandler.CreateJobHandler)))
-	router.Handler(http.MethodGet, "/v1/jobs", AuthMiddleware(http.HandlerFunc(jobHandler.GetAllJobsHandler)))
+	router.Handler(http.MethodGet, "/v1/jobsByUser", AuthMiddleware(http.HandlerFunc(jobHandler.GetAllJobsHandler)))
 
 	return router
 }
