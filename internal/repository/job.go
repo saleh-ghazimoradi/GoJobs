@@ -13,6 +13,7 @@ type Job interface {
 	GetAllJobsByUserID(ctx context.Context, userID int64) ([]*service_models.Job, error)
 	GetJobById(ctx context.Context, id int64) (*service_models.Job, error)
 	UpdateJob(ctx context.Context, job *service_models.Job) (*service_models.Job, error)
+	DeleteJob(ctx context.Context, id int64) error
 	GetWithTXT(tx *sql.Tx) Job
 }
 
@@ -104,6 +105,20 @@ func (j *jobRepository) UpdateJob(ctx context.Context, job *service_models.Job) 
 	}
 
 	return job, nil
+}
+
+func (j *jobRepository) DeleteJob(ctx context.Context, id int64) error {
+	query := `DELETE FROM jobs WHERE id = $1`
+	_, err := j.dbWrite.ExecContext(ctx, query, id)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
+	return nil
 }
 
 func (j *jobRepository) GetWithTXT(tx *sql.Tx) Job {

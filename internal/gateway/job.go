@@ -125,6 +125,28 @@ func (j *job) UpdateJobHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (j *job) DeleteJobHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	id, err := readIDParam(r)
+	if err != nil {
+		badRequestResponse(w, r, err)
+		return
+	}
+
+	userID := r.Context().Value("userID").(int64)
+	isAdmin := r.Context().Value("isAdmin").(bool)
+
+	if err = j.jobService.DeleteJob(ctx, id, userID, isAdmin); err != nil {
+		internalServerError(w, r, err)
+		return
+	}
+
+	if err = jsonResponse(w, http.StatusOK, "the job was successfully deleted"); err != nil {
+		internalServerError(w, r, err)
+	}
+}
+
 func NewJob(jobService service.Job) *job {
 	return &job{
 		jobService: jobService,

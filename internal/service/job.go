@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"github.com/saleh-ghazimoradi/GoJobs/internal/repository"
 	"github.com/saleh-ghazimoradi/GoJobs/internal/service/service_models"
 )
@@ -14,6 +13,7 @@ type Job interface {
 	GetAllJobsByUserID(ctx context.Context, userID int64) ([]*service_models.Job, error)
 	GetJobById(ctx context.Context, id int64) (*service_models.Job, error)
 	UpdateJob(ctx context.Context, job *service_models.Job, userID int64, isAdmin bool) (*service_models.Job, error)
+	DeleteJob(ctx context.Context, id int64, userId int64, isAdmin bool) error
 	GetWithTXT(tx *sql.Tx) Job
 }
 
@@ -44,9 +44,22 @@ func (j *jobService) UpdateJob(ctx context.Context, job *service_models.Job, use
 	}
 
 	if !isAdmin && exisingJob.UserID != userID {
-		return nil, errors.New("not authorized")
+		return nil, repository.ErrUnAuthorized
 	}
 	return j.jobRepo.UpdateJob(ctx, job)
+}
+
+func (j *jobService) DeleteJob(ctx context.Context, id int64, userID int64, isAdmin bool) error {
+	existingJob, err := j.jobRepo.GetJobById(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if !isAdmin && existingJob.UserID != userID {
+		return repository.ErrUnAuthorized
+	}
+
+	return j.jobRepo.DeleteJob(ctx, id)
 }
 
 func (j *jobService) GetWithTXT(tx *sql.Tx) Job {
