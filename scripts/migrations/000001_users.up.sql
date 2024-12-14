@@ -8,3 +8,8 @@ CREATE TABLE IF NOT EXISTS users (
     is_admin BOOLEAN DEFAULT false,
     profile_picture TEXT
 );
+
+INSERT INTO users (username, password, email, is_admin)
+VALUES ('admin1', '$2a$10$K8vrm0oVPaDODXrSKNSnAOESnEW34TLZp33eJQs.WWiu9N.08fV/O', 'admin1@gmail.com', true)
+    ON CONFLICT (username) DO NOTHING;
+

@@ -11,6 +11,7 @@ type User interface {
 	GetUserById(ctx context.Context, id int64) (*service_models.User, error)
 	UpdateUserProfile(ctx context.Context, id int64, username, email string) (*service_models.User, error)
 	UpdateUserProfilePicture(ctx context.Context, id int64, picture string) error
+	GetAllUsers(ctx context.Context) ([]*service_models.User, error)
 	GetWithTXT(tx *sql.Tx) User
 }
 
@@ -29,6 +30,10 @@ func (u *userService) UpdateUserProfile(ctx context.Context, id int64, username,
 
 func (u *userService) UpdateUserProfilePicture(ctx context.Context, id int64, picture string) error {
 	return u.userRepo.UpdateUserProfilePicture(ctx, id, picture)
+}
+
+func (u *userService) GetAllUsers(ctx context.Context) ([]*service_models.User, error) {
+	return u.userRepo.GetAllUsers(ctx)
 }
 
 func (u *userService) GetWithTXT(tx *sql.Tx) User {

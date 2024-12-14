@@ -13,6 +13,7 @@ type User interface {
 	GetUserByUsername(ctx context.Context, username string) (*service_models.User, error)
 	UpdateUserProfile(ctx context.Context, user *service_models.User) (*service_models.User, error)
 	UpdateUserProfilePicture(ctx context.Context, id int64, picture string) error
+	GetAllUsers(ctx context.Context) ([]*service_models.User, error)
 	GetWithTXT(tx *sql.Tx) User
 }
 
@@ -104,6 +105,31 @@ func (u *userRepository) UpdateUserProfilePicture(ctx context.Context, id int64,
 		}
 	}
 	return nil
+}
+
+func (u *userRepository) GetAllUsers(ctx context.Context) ([]*service_models.User, error) {
+	var users []*service_models.User
+	query := `SELECT id, username, password, email, created_at, updated_at, is_admin, profile_picture FROM users`
+	rows, err := u.dbRead.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var user service_models.User
+		var profilePicture sql.NullString
+		err = rows.Scan(&user.ID, &user.Username, &user.Password, &user.Email, &user.CreateAt, &user.UpdateAt, &user.IsAdmin, &profilePicture)
+		if err != nil {
+			return nil, err
+		}
+		if profilePicture.Valid {
+			user.ProfilePicture = &profilePicture.String
+		} else {
+			user.ProfilePicture = nil
+		}
+		users = append(users, &user)
+	}
+	return users, nil
 }
 
 func (u *userRepository) GetWithTXT(tx *sql.Tx) User {

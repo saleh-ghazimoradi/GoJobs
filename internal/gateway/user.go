@@ -158,6 +158,31 @@ func (u *user) UpdateUserProfilePictureHandler(w http.ResponseWriter, r *http.Re
 	}
 }
 
+func (u *user) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	isAdmin, ok := r.Context().Value("isAdmin").(bool)
+	if !ok {
+		unauthorizedErrorResponse(w, r, fmt.Errorf("unauthorized to get all users"))
+		return
+	}
+
+	if !isAdmin {
+		unauthorizedErrorResponse(w, r, fmt.Errorf("unauthorized to get all users"))
+		return
+	}
+
+	users, err := u.userService.GetAllUsers(ctx)
+	if err != nil {
+		internalServerError(w, r, err)
+		return
+	}
+	if err = jsonResponse(w, http.StatusOK, users); err != nil {
+		internalServerError(w, r, err)
+		return
+	}
+}
+
 func NewUserHandler(userService service.User) *user {
 	return &user{
 		userService: userService,
