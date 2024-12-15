@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/saleh-ghazimoradi/GoJobs/internal/service/service_models"
 )
 
@@ -15,6 +16,7 @@ type User interface {
 	UpdateUserProfilePicture(ctx context.Context, id int64, picture string) error
 	GetAllUsers(ctx context.Context) ([]*service_models.User, error)
 	UpdateUserPassword(ctx context.Context, user *service_models.User) error
+	DeleteUser(ctx context.Context, id int64) (string, error)
 	GetWithTXT(tx *sql.Tx) User
 }
 
@@ -145,6 +147,35 @@ func (u *userRepository) UpdateUserPassword(ctx context.Context, user *service_m
 		}
 	}
 	return nil
+}
+
+func (u *userRepository) DeleteUser(ctx context.Context, id int64) (string, error) {
+	query := `DELETE FROM users WHERE id = $1`
+	result, err := u.dbWrite.ExecContext(ctx, query, id)
+	if err != nil {
+		return "", fmt.Errorf("error deleting user: %v", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return "", fmt.Errorf("error getting rows affected: %v", err)
+	}
+	if rowsAffected == 0 {
+		return "", ErrRecordNotFound
+	}
+
+	var profilePicture sql.NullString
+	query = `SELECT profile_picture FROM users WHERE id = $1`
+	err = u.dbRead.QueryRowContext(ctx, query, id).Scan(&profilePicture)
+	if err != nil {
+
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", nil
+		}
+		return "", fmt.Errorf("error retrieving profile picture: %v", err)
+	}
+
+	return profilePicture.String, nil
 }
 
 func (u *userRepository) GetWithTXT(tx *sql.Tx) User {

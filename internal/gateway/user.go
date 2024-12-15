@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/saleh-ghazimoradi/GoJobs/config"
+	"github.com/saleh-ghazimoradi/GoJobs/internal/repository"
 	"github.com/saleh-ghazimoradi/GoJobs/internal/service"
 	"github.com/saleh-ghazimoradi/GoJobs/internal/service/service_models"
 	"io"
@@ -182,6 +183,94 @@ func (u *user) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (u *user) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	// Check if the user is an admin
+	isAdmin, ok := r.Context().Value("isAdmin").(bool)
+	if !ok || !isAdmin {
+		unauthorizedErrorResponse(w, r, fmt.Errorf("unauthorized to delete user"))
+		return
+	}
+
+	// Read the user ID parameter from the request
+	id, err := readIDParam(r)
+	if err != nil {
+		badRequestResponse(w, r, err)
+		return // Return here to stop execution after bad request
+	}
+
+	// Prevent users from deleting their own account
+	currentUserID := r.Context().Value("userID").(int64)
+	if currentUserID == id {
+		badRequestResponse(w, r, fmt.Errorf("cannot delete yourself"))
+		return // Return here to stop execution after bad request
+	}
+
+	// Try to delete the user
+	err = u.userService.DeleteUser(ctx, id)
+	if err != nil {
+		// If the user doesn't exist, handle it gracefully
+		if errors.Is(err, repository.ErrRecordNotFound) {
+			badRequestResponse(w, r, fmt.Errorf("user not found"))
+			return // Return here to stop execution after error
+		}
+		internalServerError(w, r, err)
+		return // Return here to stop execution after error
+	}
+
+	// Respond with success if the user was successfully deleted
+	if err := jsonResponse(w, http.StatusOK, "user deleted"); err != nil {
+		internalServerError(w, r, err)
+		return // Return here to stop execution after error
+	}
+}
+
+//func (u *user) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
+//	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+//	defer cancel()
+//
+//	isAdmin, ok := r.Context().Value("isAdmin").(bool)
+//	if !ok {
+//		unauthorizedErrorResponse(w, r, fmt.Errorf("unauthorized to delete user"))
+//		return
+//	}
+//
+//	if !isAdmin {
+//		unauthorizedErrorResponse(w, r, fmt.Errorf("unauthorized to delete user"))
+//		return
+//	}
+//
+//	id, err := readIDParam(r)
+//	if err != nil {
+//		badRequestResponse(w, r, err)
+//		return
+//	}
+//
+//	currentUserID := r.Context().Value("userID").(int64)
+//	if currentUserID == id {
+//		badRequestResponse(w, r, fmt.Errorf("cannot delete yourself"))
+//		return
+//	}
+//	err = u.userService.DeleteUser(ctx, id)
+//	if err != nil {
+//		// Handle specific error when the user is not found
+//		if errors.Is(err, repository.ErrRecordNotFound) {
+//			badRequestResponse(w, r, fmt.Errorf("user not found"))
+//			return // Return here to stop execution after error
+//		}
+//		// Handle any other server errors
+//		internalServerError(w, r, err)
+//		return // Return here to stop execution after error
+//	}
+//
+//	if err = jsonResponse(w, http.StatusOK, "user deleted"); err != nil {
+//		internalServerError(w, r, err)
+//		return
+//	}
+//}
 
 func NewUserHandler(userService service.User) *user {
 	return &user{

@@ -45,6 +45,7 @@ func registerRoutes() http.Handler {
 	router.Handler(http.MethodDelete, "/v1/jobs/:id", AuthMiddleware(http.HandlerFunc(jobHandler.DeleteJobHandler)))
 
 	router.Handler(http.MethodGet, "/v1/users", AuthMiddleware(http.HandlerFunc(userHandler.GetAllUsersHandler)))
+	router.Handler(http.MethodDelete, "/v1/users/:id", AuthMiddleware(http.HandlerFunc(userHandler.DeleteUserHandler)))
 
 	return router
 }
