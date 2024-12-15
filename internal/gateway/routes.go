@@ -46,6 +46,7 @@ func registerRoutes() http.Handler {
 
 	router.Handler(http.MethodGet, "/v1/users", AuthMiddleware(http.HandlerFunc(userHandler.GetAllUsersHandler)))
 	router.Handler(http.MethodDelete, "/v1/users/:id", AuthMiddleware(http.HandlerFunc(userHandler.DeleteUserHandler)))
+	router.Handler(http.MethodPut, "/v1/users/:id/changePassword", AuthMiddleware(http.HandlerFunc(userHandler.ChangePasswordHandler)))
 
 	return router
 }

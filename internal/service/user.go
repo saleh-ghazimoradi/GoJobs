@@ -18,6 +18,7 @@ type User interface {
 	UpdateUserProfilePicture(ctx context.Context, id int64, picture string) error
 	GetAllUsers(ctx context.Context) ([]*service_models.User, error)
 	DeleteUser(ctx context.Context, id int64) error
+	ChangePassword(ctx context.Context, id int64, currentPassword, newPassword string) error
 	GetWithTXT(tx *sql.Tx) User
 }
 
@@ -63,6 +64,10 @@ func (u *userService) DeleteUser(ctx context.Context, id int64) error {
 		}
 	}
 	return nil
+}
+
+func (u *userService) ChangePassword(ctx context.Context, id int64, currentPassword, newPassword string) error {
+	return u.userRepo.ChangePassword(ctx, id, currentPassword, newPassword)
 }
 
 func (u *userService) GetWithTXT(tx *sql.Tx) User {

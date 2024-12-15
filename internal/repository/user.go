@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/saleh-ghazimoradi/GoJobs/internal/service/service_models"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User interface {
@@ -17,6 +18,7 @@ type User interface {
 	GetAllUsers(ctx context.Context) ([]*service_models.User, error)
 	UpdateUserPassword(ctx context.Context, user *service_models.User) error
 	DeleteUser(ctx context.Context, id int64) (string, error)
+	ChangePassword(ctx context.Context, id int64, currentPassword, newPassword string) error
 	GetWithTXT(tx *sql.Tx) User
 }
 
@@ -176,6 +178,43 @@ func (u *userRepository) DeleteUser(ctx context.Context, id int64) (string, erro
 	}
 
 	return profilePicture.String, nil
+}
+
+func (u *userRepository) ChangePassword(ctx context.Context, id int64, currentPassword, newPassword string) error {
+	var hashedPassword string
+
+	query := `SELECT password FROM users WHERE id = $1`
+	err := u.dbRead.QueryRowContext(ctx, query, id).Scan(&hashedPassword)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrRecordNotFound
+		}
+		return fmt.Errorf("error checking password: %v", err)
+	}
+
+	if err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(currentPassword)); err != nil {
+		return fmt.Errorf("current password is incorrect: %v", err)
+	}
+
+	hashedNewPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("error generating new password hash: %v", err)
+	}
+
+	query = `UPDATE users SET password = $1 WHERE id = $2`
+	result, err := u.dbWrite.ExecContext(ctx, query, hashedNewPassword, id)
+	if err != nil {
+		return fmt.Errorf("error updating password: %v", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error checking update result: %v", err)
+	}
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
+	}
+	return nil
 }
 
 func (u *userRepository) GetWithTXT(tx *sql.Tx) User {

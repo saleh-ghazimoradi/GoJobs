@@ -188,89 +188,75 @@ func (u *user) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	// Check if the user is an admin
 	isAdmin, ok := r.Context().Value("isAdmin").(bool)
 	if !ok || !isAdmin {
 		unauthorizedErrorResponse(w, r, fmt.Errorf("unauthorized to delete user"))
 		return
 	}
 
-	// Read the user ID parameter from the request
 	id, err := readIDParam(r)
 	if err != nil {
 		badRequestResponse(w, r, err)
-		return // Return here to stop execution after bad request
+		return
 	}
 
-	// Prevent users from deleting their own account
 	currentUserID := r.Context().Value("userID").(int64)
 	if currentUserID == id {
 		badRequestResponse(w, r, fmt.Errorf("cannot delete yourself"))
-		return // Return here to stop execution after bad request
+		return
 	}
 
-	// Try to delete the user
 	err = u.userService.DeleteUser(ctx, id)
 	if err != nil {
-		// If the user doesn't exist, handle it gracefully
 		if errors.Is(err, repository.ErrRecordNotFound) {
 			badRequestResponse(w, r, fmt.Errorf("user not found"))
-			return // Return here to stop execution after error
+			return
 		}
 		internalServerError(w, r, err)
-		return // Return here to stop execution after error
+		return
 	}
 
-	// Respond with success if the user was successfully deleted
 	if err := jsonResponse(w, http.StatusOK, "user deleted"); err != nil {
 		internalServerError(w, r, err)
-		return // Return here to stop execution after error
+		return
 	}
 }
 
-//func (u *user) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
-//	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-//	defer cancel()
-//
-//	isAdmin, ok := r.Context().Value("isAdmin").(bool)
-//	if !ok {
-//		unauthorizedErrorResponse(w, r, fmt.Errorf("unauthorized to delete user"))
-//		return
-//	}
-//
-//	if !isAdmin {
-//		unauthorizedErrorResponse(w, r, fmt.Errorf("unauthorized to delete user"))
-//		return
-//	}
-//
-//	id, err := readIDParam(r)
-//	if err != nil {
-//		badRequestResponse(w, r, err)
-//		return
-//	}
-//
-//	currentUserID := r.Context().Value("userID").(int64)
-//	if currentUserID == id {
-//		badRequestResponse(w, r, fmt.Errorf("cannot delete yourself"))
-//		return
-//	}
-//	err = u.userService.DeleteUser(ctx, id)
-//	if err != nil {
-//		// Handle specific error when the user is not found
-//		if errors.Is(err, repository.ErrRecordNotFound) {
-//			badRequestResponse(w, r, fmt.Errorf("user not found"))
-//			return // Return here to stop execution after error
-//		}
-//		// Handle any other server errors
-//		internalServerError(w, r, err)
-//		return // Return here to stop execution after error
-//	}
-//
-//	if err = jsonResponse(w, http.StatusOK, "user deleted"); err != nil {
-//		internalServerError(w, r, err)
-//		return
-//	}
-//}
+func (u *user) ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	var req service_models.ChangePassword
+	if err := readJSON(w, r, &req); err != nil {
+		badRequestResponse(w, r, err)
+		return
+	}
+	if err := Validate.Struct(req); err != nil {
+		badRequestResponse(w, r, err)
+		return
+	}
+
+	userID, ok := r.Context().Value("userID").(int64)
+	if !ok {
+		badRequestResponse(w, r, fmt.Errorf("unauthorized to update this user profile"))
+		return
+	}
+
+	err := u.userService.ChangePassword(ctx, userID, req.CurrentPassword, req.NewPassword)
+	if err != nil {
+		switch {
+		case errors.Is(err, repository.ErrRecordNotFound):
+			notFoundResponse(w, r, err)
+			return
+		default:
+			internalServerError(w, r, err)
+			return
+		}
+	}
+	if err := jsonResponse(w, http.StatusOK, "Password successfully changed"); err != nil {
+		internalServerError(w, r, err)
+		return
+	}
+}
 
 func NewUserHandler(userService service.User) *user {
 	return &user{
