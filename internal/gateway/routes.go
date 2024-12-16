@@ -1,14 +1,27 @@
 package gateway
 
 import (
+	"fmt"
 	"github.com/julienschmidt/httprouter"
+	"github.com/saleh-ghazimoradi/GoJobs/config"
+	"github.com/saleh-ghazimoradi/GoJobs/docs"
+	_ "github.com/saleh-ghazimoradi/GoJobs/docs"
 	"github.com/saleh-ghazimoradi/GoJobs/internal/repository"
 	"github.com/saleh-ghazimoradi/GoJobs/internal/service"
 	"github.com/saleh-ghazimoradi/GoJobs/logger"
 	"github.com/saleh-ghazimoradi/GoJobs/utils"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"net/http"
 )
 
+// @title GoJobs API
+// @version 1.0
+// @description This is a web API server.
+// @BasePath /
+// @schemes http https
+// @securityDefinitions.apikey AuthBearer
+// @in header
+// @name Authorization
 func registerRoutes() http.Handler {
 	db, err := utils.PostConnection()
 	if err != nil {
@@ -48,5 +61,18 @@ func registerRoutes() http.Handler {
 	router.Handler(http.MethodDelete, "/v1/users/:id", AuthMiddleware(http.HandlerFunc(userHandler.DeleteUserHandler)))
 	router.Handler(http.MethodPut, "/v1/users/:id/changePassword", AuthMiddleware(http.HandlerFunc(userHandler.ChangePasswordHandler)))
 
+	swaggerHandler := SetupSwagger()
+	router.Handler(http.MethodGet, "/swagger/*any", swaggerHandler)
 	return router
+}
+
+func SetupSwagger() http.Handler {
+	docs.SwaggerInfo.Title = "Golang Web API"
+	docs.SwaggerInfo.Description = "This is a web API server."
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.BasePath = "/"
+	docs.SwaggerInfo.Host = fmt.Sprintf("localhost%s", config.AppConfig.ServerConfig.Port)
+	docs.SwaggerInfo.Schemes = []string{"http", "https"}
+
+	return httpSwagger.WrapHandler
 }

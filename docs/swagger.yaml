@@ -1,0 +1,595 @@
+definitions:
+  gateway.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  service_models.ChangePassword:
+    description: The structure for changing the user's password
+    properties:
+      current_password:
+        type: string
+      new_password:
+        type: string
+    required:
+    - current_password
+    - new_password
+    type: object
+  service_models.ForgotPasswordRequest:
+    properties:
+      username:
+        type: string
+    type: object
+  service_models.Job:
+    properties:
+      company:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      location:
+        type: string
+      salary:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  service_models.LoginAuthPayload:
+    properties:
+      password:
+        maxLength: 72
+        minLength: 3
+        type: string
+      username:
+        maxLength: 100
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  service_models.RegisterAuthPayload:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 72
+        minLength: 3
+        type: string
+      username:
+        maxLength: 100
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  service_models.UpdateUserPayload:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      password:
+        type: string
+      username:
+        maxLength: 100
+        type: string
+    type: object
+  service_models.User:
+    properties:
+      create_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_admin:
+        type: boolean
+      password:
+        type: string
+      profile_picture:
+        type: string
+      update_at:
+        type: string
+      username:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /jobs:
+    get:
+      description: Retrieves a list of all jobs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/service_models.Job'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all jobs
+      tags:
+      - jobs
+    post:
+      consumes:
+      - application/json
+      description: Creates a new job entry
+      parameters:
+      - description: Job data
+        in: body
+        name: job
+        required: true
+        schema:
+          $ref: '#/definitions/service_models.Job'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/service_models.Job'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new job
+      tags:
+      - jobs
+  /jobs/{id}:
+    delete:
+      description: Deletes a job by its ID
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Job successfully deleted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a job
+      tags:
+      - jobs
+    get:
+      description: Retrieves a job by its ID
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service_models.Job'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get job by ID
+      tags:
+      - jobs
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing job
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated job data
+        in: body
+        name: job
+        required: true
+        schema:
+          $ref: '#/definitions/service_models.Job'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service_models.Job'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a job
+      tags:
+      - jobs
+  /jobs/user:
+    get:
+      description: Retrieves a list of jobs created by the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/service_models.Job'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get jobs by user
+      tags:
+      - jobs
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all users. Requires admin privileges.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of all users
+          schema:
+            items:
+              $ref: '#/definitions/service_models.User'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+      summary: Get All Users
+      tags:
+      - Users
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user by their unique ID. Requires admin privileges.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User deleted
+          schema:
+            type: string
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+      summary: Delete User
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a user's details by their unique ID.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            $ref: '#/definitions/service_models.User'
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+      summary: Get User by ID
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Update the profile information of a user.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User Profile Update Payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service_models.UpdateUserPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated user profile
+          schema:
+            $ref: '#/definitions/service_models.User'
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+      summary: Update User Profile
+      tags:
+      - Users
+  /users/{id}/profile-picture:
+    put:
+      consumes:
+      - multipart/form-data
+      description: Update the profile picture of a user.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Profile Picture File
+        in: formData
+        name: profile_picture
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile picture updated successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+      summary: Update User Profile Picture
+      tags:
+      - Users
+  /users/change-password:
+    post:
+      consumes:
+      - application/json
+      description: Allows a user to change their password.
+      parameters:
+      - description: Change Password Payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service_models.ChangePassword'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password successfully changed
+          schema:
+            $ref: '#/definitions/service_models.User'
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+      summary: Change User Password
+      tags:
+      - Users
+  /v1/forgotpassword:
+    post:
+      consumes:
+      - application/json
+      description: Retrieve a user's forgotten password
+      parameters:
+      - description: Forgot password request details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/service_models.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: New password
+          schema:
+            type: string
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+      summary: Forgot Password
+      tags:
+      - Auth
+  /v1/healthcheck:
+    get:
+      consumes:
+      - application/json
+      description: This endpoint returns the health status of the application, including
+        environment and version information.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health Check Endpoint
+      tags:
+      - health
+  /v1/login:
+    post:
+      consumes:
+      - application/json
+      description: Login an existing user with username and password.
+      parameters:
+      - description: User login details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service_models.LoginAuthPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User information with the authentication token
+          schema:
+            $ref: '#/definitions/service_models.User'
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+      summary: User Login
+      tags:
+      - Users
+  /v1/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with a username, password, and email.
+      parameters:
+      - description: User registration details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service_models.RegisterAuthPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Registered user details
+          schema:
+            $ref: '#/definitions/service_models.User'
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/gateway.ErrorResponse'
+      summary: User Registration
+      tags:
+      - Users
+swagger: "2.0"
