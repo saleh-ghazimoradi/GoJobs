@@ -71,6 +71,20 @@ func LoadingConfig() error {
 
 	config.DBConfig = *dbConfig
 
+	jwtConfig := &JWT{}
+
+	if err := env.Parse(jwtConfig); err != nil {
+		log.Fatalf("unable to parse config: %v", err)
+	}
+
+	config.JWT = *jwtConfig
+
+	uploadDirConfig := &UploadDIR{}
+	if err := env.Parse(uploadDirConfig); err != nil {
+		log.Fatalf("unable to parse config: %v", err)
+	}
+	config.UploadDIR = *uploadDirConfig
+
 	AppConfig = config
 
 	return nil
