@@ -12,17 +12,16 @@ type authenticate struct {
 	authService service.Authenticate
 }
 
-// loginHandler handles user login.
-// @Summary User Login
-// @Description Login an existing user with username and password.
-// @Tags Users
+// loginHandler handles user login and returns a token.
+// @Summary User login
+// @Description Authenticates a user and returns a JWT token if the credentials are valid.
+// @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param body body service_models.LoginAuthPayload true "User login details"
-// @Success 200 {object} service_models.User "User information with the authentication token"
-// @Failure 400 {object} ErrorResponse "Invalid request parameters"
-// @Failure 401 {object} ErrorResponse "Unauthorized"
-// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Param LoginAuthPayload body service_models.LoginAuthPayload true "Login credentials"
+// @Success 200 {string} string "JWT token"
+// @Failure 400 {object} ErrorResponse "Bad Request"
+// @Failure 500 {object} ErrorResponse "Internal Server Error"
 // @Router /v1/login [post]
 func (a *authenticate) loginHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
@@ -49,16 +48,16 @@ func (a *authenticate) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// registerHandler handles the registration of a new user.
-// @Summary User Registration
-// @Description Register a new user with a username, password, and email.
-// @Tags Users
+// registerHandler handles user registration by creating a new user.
+// @Summary User registration
+// @Description Registers a new user with the provided username, password, and email.
+// @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param body body service_models.RegisterAuthPayload true "User registration details"
-// @Success 200 {object} service_models.User "Registered user details"
-// @Failure 400 {object} ErrorResponse "Invalid request parameters"
-// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Param RegisterAuthPayload body service_models.RegisterAuthPayload true "User registration credentials"
+// @Success 201 {object} service_models.User "User created"
+// @Failure 400 {object} ErrorResponse "Bad Request"
+// @Failure 500 {object} ErrorResponse "Internal Server Error"
 // @Router /v1/register [post]
 func (a *authenticate) registerHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
@@ -87,16 +86,16 @@ func (a *authenticate) registerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ForgotPasswordHandler handles forgotten passwords.
-// @Summary Forgot Password
-// @Description Retrieve a user's forgotten password
-// @Tags Auth
+// ForgotPasswordHandler handles the password reset request by sending a password to the user.
+// @Summary Password reset request
+// @Description Requests a password reset for the provided username and returns a password if successful.
+// @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param request body service_models.ForgotPasswordRequest true "Forgot password request details"
-// @Success 200 {string} string "New password"
-// @Failure 400 {object} ErrorResponse "Invalid request parameters"
-// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Param ForgotPasswordRequest body service_models.ForgotPasswordRequest true "User's username for password reset"
+// @Success 200 {string} string "Password reset successful"
+// @Failure 400 {object} ErrorResponse "Bad Request"
+// @Failure 500 {object} ErrorResponse "Internal Server Error"
 // @Router /v1/forgotpassword [post]
 func (a *authenticate) ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)

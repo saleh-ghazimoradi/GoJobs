@@ -20,6 +20,19 @@ type user struct {
 	userService service.User
 }
 
+// getUserByIdHandler retrieves a user by ID.
+// @Summary Get user by ID
+// @Description Fetch a user's details using their unique ID. Requires an authorization token.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path int true "User ID"
+// @Success 200 {object} service_models.User
+// @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /v1/users/{id} [get]
 func (u *user) getUserByIdHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
@@ -44,6 +57,21 @@ func (u *user) getUserByIdHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// UpdateUserProfileHandler updates the profile of a user by ID.
+// @Summary Update user profile
+// @Description Update the user profile (username and email). Requires authorization token and admin check.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path int true "User ID"
+// @Param updateUser body service_models.UpdateUserPayload true "User Profile Information"
+// @Success 200 {object} service_models.User
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /v1/users/{id} [put]
 func (u *user) UpdateUserProfileHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
@@ -92,6 +120,20 @@ func (u *user) UpdateUserProfileHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// UpdateUserProfilePictureHandler updates the profile picture of a user by ID.
+// @Summary Update user profile picture
+// @Description Update the user's profile picture. Requires authorization token and admin check.
+// @Tags Users
+// @Accept multipart/form-data
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path int true "User ID"
+// @Param profile_picture formData file true "Profile Picture File"
+// @Success 200 {string} string "Profile picture updated successfully"
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /v1/users/{id}/picture [put]
 func (u *user) UpdateUserProfilePictureHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
@@ -159,6 +201,18 @@ func (u *user) UpdateUserProfilePictureHandler(w http.ResponseWriter, r *http.Re
 	}
 }
 
+// GetAllUsersHandler handles the retrieval of all users.
+// @Summary Retrieve all users
+// @Description Get a list of all users. Requires an authorization token.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {array} service_models.User
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /v1/users [get]
 func (u *user) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
@@ -184,6 +238,19 @@ func (u *user) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// DeleteUserHandler deletes a user by ID.
+// @Summary Delete user
+// @Description Deletes a user by ID. Only an admin user can delete another user. You cannot delete yourself.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path int true "User ID"
+// @Success 200 {string} string "User deleted"
+// @Failure 400 {object} ErrorResponse "Bad Request"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 500 {object} ErrorResponse "Internal Server Error"
+// @Router /v1/users/{id} [delete]
 func (u *user) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
@@ -222,6 +289,20 @@ func (u *user) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ChangePasswordHandler changes the user's password.
+// @Summary Change password
+// @Description Changes the password for the authenticated user. The user must provide their current password and the new password.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param ChangePassword body service_models.ChangePassword true "Change Password Request"
+// @Success 200 {string} string "Password successfully changed"
+// @Failure 400 {object} ErrorResponse "Bad Request"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 404 {object} ErrorResponse "User not found"
+// @Failure 500 {object} ErrorResponse "Internal Server Error"
+// @Router /v1/users/{id}/changePassword [put]
 func (u *user) ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()

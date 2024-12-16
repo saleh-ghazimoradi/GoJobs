@@ -15,19 +15,119 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/jobs": {
+        "/swagger": {
             "get": {
-                "description": "Retrieves a list of all jobs",
+                "description": "Provides access to the Swagger UI",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Swagger Documentation",
+                "responses": {
+                    "200": {
+                        "description": "Swagger UI",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/forgotpassword": {
+            "post": {
+                "description": "Requests a password reset for the provided username and returns a password if successful.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "jobs"
+                    "Authentication"
                 ],
-                "summary": "Get all jobs",
+                "summary": "Password reset request",
+                "parameters": [
+                    {
+                        "description": "User's username for password reset",
+                        "name": "ForgotPasswordRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service_models.ForgotPasswordRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Password reset successful",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/gateway.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gateway.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/healthcheck": {
+            "get": {
+                "description": "Returns the current status of the application, including its environment and version details.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Health check endpoint",
+                "responses": {
+                    "200": {
+                        "description": "Health check status, environment, and version",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gateway.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/jobs": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Fetches a list of all job listings available in the system.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Retrieve all job listings",
+                "responses": {
+                    "200": {
+                        "description": "List of all jobs",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -38,16 +138,18 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/gateway.ErrorResponse"
                         }
                     }
                 }
             },
             "post": {
-                "description": "Creates a new job entry",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Creates a new job listing with the provided job details. The job is associated with the authenticated user.",
                 "consumes": [
                     "application/json"
                 ],
@@ -55,13 +157,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "jobs"
+                    "Jobs"
                 ],
-                "summary": "Create a new job",
+                "summary": "Create a new job listing",
                 "parameters": [
                     {
-                        "description": "Job data",
-                        "name": "job",
+                        "description": "Job Details",
+                        "name": "Job",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -71,7 +173,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created",
+                        "description": "Job successfully created",
                         "schema": {
                             "$ref": "#/definitions/service_models.Job"
                         }
@@ -79,66 +181,39 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/gateway.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/gateway.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/gateway.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/jobs/user": {
+        "/v1/jobs/{id}": {
             "get": {
-                "description": "Retrieves a list of jobs created by the authenticated user",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "jobs"
-                ],
-                "summary": "Get jobs by user",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/service_models.Job"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
+                "security": [
+                    {
+                        "ApiKeyAuth": []
                     }
-                }
-            }
-        },
-        "/jobs/{id}": {
-            "get": {
-                "description": "Retrieves a job by its ID",
+                ],
+                "description": "Fetches a job listing based on the provided job ID.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "jobs"
+                    "Jobs"
                 ],
-                "summary": "Get job by ID",
+                "summary": "Retrieve a job listing by ID",
                 "parameters": [
                     {
                         "type": "integer",
@@ -150,7 +225,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Job listing details",
                         "schema": {
                             "$ref": "#/definitions/service_models.Job"
                         }
@@ -158,35 +233,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/gateway.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/gateway.ErrorResponse"
                         }
                     }
                 }
             },
             "put": {
-                "description": "Updates an existing job",
-                "consumes": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Updates the details of a job listing, based on the provided job ID and job data.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "jobs"
+                    "Jobs"
                 ],
-                "summary": "Update a job",
+                "summary": "Update an existing job listing",
                 "parameters": [
                     {
                         "type": "integer",
@@ -196,7 +267,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Updated job data",
+                        "description": "Job data to update",
                         "name": "job",
                         "in": "body",
                         "required": true,
@@ -207,7 +278,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Updated job details",
                         "schema": {
                             "$ref": "#/definitions/service_models.Job"
                         }
@@ -215,29 +286,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/gateway.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/gateway.ErrorResponse"
                         }
                     }
                 }
             },
             "delete": {
-                "description": "Deletes a job by its ID",
-                "tags": [
-                    "jobs"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
-                "summary": "Delete a job",
+                "description": "Deletes a job listing by its ID. Only the user who created the job or an admin can delete it.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Delete a job listing",
                 "parameters": [
                     {
                         "type": "integer",
@@ -249,7 +322,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Job successfully deleted",
+                        "description": "The job was successfully deleted",
                         "schema": {
                             "type": "string"
                         }
@@ -257,27 +330,161 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "$ref": "#/definitions/gateway.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gateway.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/jobsByUser": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Fetches a list of all job listings associated with a specific user based on the user ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Retrieve all job listings by user ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of jobs for the specified user",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/service_models.Job"
                             }
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/gateway.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/users": {
+        "/v1/login": {
+            "post": {
+                "description": "Authenticates a user and returns a JWT token if the credentials are valid.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User login",
+                "parameters": [
+                    {
+                        "description": "Login credentials",
+                        "name": "LoginAuthPayload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service_models.LoginAuthPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "JWT token",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/gateway.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gateway.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/register": {
+            "post": {
+                "description": "Registers a new user with the provided username, password, and email.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User registration",
+                "parameters": [
+                    {
+                        "description": "User registration credentials",
+                        "name": "RegisterAuthPayload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service_models.RegisterAuthPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User created",
+                        "schema": {
+                            "$ref": "#/definitions/service_models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/gateway.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gateway.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users": {
             "get": {
-                "description": "Retrieve a list of all users. Requires admin privileges.",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get a list of all users. Requires an authorization token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -287,15 +494,21 @@ const docTemplate = `{
                 "tags": [
                     "Users"
                 ],
-                "summary": "Get All Users",
+                "summary": "Retrieve all users",
                 "responses": {
                     "200": {
-                        "description": "List of all users",
+                        "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/service_models.User"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/gateway.ErrorResponse"
                         }
                     },
                     "401": {
@@ -305,7 +518,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/gateway.ErrorResponse"
                         }
@@ -313,61 +526,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/change-password": {
-            "post": {
-                "description": "Allows a user to change their password.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Change User Password",
-                "parameters": [
-                    {
-                        "description": "Change Password Payload",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/service_models.ChangePassword"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Password successfully changed",
-                        "schema": {
-                            "$ref": "#/definitions/service_models.User"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request parameters",
-                        "schema": {
-                            "$ref": "#/definitions/gateway.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "User not found",
-                        "schema": {
-                            "$ref": "#/definitions/gateway.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/gateway.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{id}": {
+        "/v1/users/{id}": {
             "get": {
-                "description": "Retrieve a user's details by their unique ID.",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Fetch a user's details using their unique ID. Requires an authorization token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -377,7 +543,7 @@ const docTemplate = `{
                 "tags": [
                     "Users"
                 ],
-                "summary": "Get User by ID",
+                "summary": "Get user by ID",
                 "parameters": [
                     {
                         "type": "integer",
@@ -389,25 +555,25 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successful response",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/service_models.User"
                         }
                     },
                     "400": {
-                        "description": "Invalid request parameters",
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/gateway.ErrorResponse"
                         }
                     },
                     "404": {
-                        "description": "User not found",
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/gateway.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/gateway.ErrorResponse"
                         }
@@ -415,7 +581,12 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Update the profile information of a user.",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update the user profile (username and email). Requires authorization token and admin check.",
                 "consumes": [
                     "application/json"
                 ],
@@ -425,7 +596,7 @@ const docTemplate = `{
                 "tags": [
                     "Users"
                 ],
-                "summary": "Update User Profile",
+                "summary": "Update user profile",
                 "parameters": [
                     {
                         "type": "integer",
@@ -435,8 +606,8 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "User Profile Update Payload",
-                        "name": "body",
+                        "description": "User Profile Information",
+                        "name": "updateUser",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -446,13 +617,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Updated user profile",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/service_models.User"
                         }
                     },
                     "400": {
-                        "description": "Invalid request parameters",
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/gateway.ErrorResponse"
                         }
@@ -463,8 +634,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/gateway.ErrorResponse"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/gateway.ErrorResponse"
+                        }
+                    },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/gateway.ErrorResponse"
                         }
@@ -472,7 +649,12 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete a user by their unique ID. Requires admin privileges.",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Deletes a user by ID. Only an admin user can delete another user. You cannot delete yourself.",
                 "consumes": [
                     "application/json"
                 ],
@@ -482,7 +664,7 @@ const docTemplate = `{
                 "tags": [
                     "Users"
                 ],
-                "summary": "Delete User",
+                "summary": "Delete user",
                 "parameters": [
                     {
                         "type": "integer",
@@ -500,7 +682,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid request parameters",
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/gateway.ErrorResponse"
                         }
@@ -512,7 +694,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/gateway.ErrorResponse"
                         }
@@ -520,9 +702,77 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/{id}/profile-picture": {
+        "/v1/users/{id}/changePassword": {
             "put": {
-                "description": "Update the profile picture of a user.",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Changes the password for the authenticated user. The user must provide their current password and the new password.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Change password",
+                "parameters": [
+                    {
+                        "description": "Change Password Request",
+                        "name": "ChangePassword",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service_models.ChangePassword"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password successfully changed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/gateway.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/gateway.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/gateway.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gateway.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/{id}/picture": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update the user's profile picture. Requires authorization token and admin check.",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -532,7 +782,7 @@ const docTemplate = `{
                 "tags": [
                     "Users"
                 ],
-                "summary": "Update User Profile Picture",
+                "summary": "Update user profile picture",
                 "parameters": [
                     {
                         "type": "integer",
@@ -557,7 +807,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid request parameters",
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/gateway.ErrorResponse"
                         }
@@ -566,189 +816,10 @@ const docTemplate = `{
                         "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/gateway.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/gateway.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/forgotpassword": {
-            "post": {
-                "description": "Retrieve a user's forgotten password",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "Forgot Password",
-                "parameters": [
-                    {
-                        "description": "Forgot password request details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/service_models.ForgotPasswordRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "New password",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request parameters",
-                        "schema": {
-                            "$ref": "#/definitions/gateway.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/gateway.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/healthcheck": {
-            "get": {
-                "description": "This endpoint returns the health status of the application, including environment and version information.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "health"
-                ],
-                "summary": "Health Check Endpoint",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/login": {
-            "post": {
-                "description": "Login an existing user with username and password.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "User Login",
-                "parameters": [
-                    {
-                        "description": "User login details",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/service_models.LoginAuthPayload"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "User information with the authentication token",
-                        "schema": {
-                            "$ref": "#/definitions/service_models.User"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request parameters",
-                        "schema": {
-                            "$ref": "#/definitions/gateway.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/gateway.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/gateway.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/register": {
-            "post": {
-                "description": "Register a new user with a username, password, and email.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "User Registration",
-                "parameters": [
-                    {
-                        "description": "User registration details",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/service_models.RegisterAuthPayload"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Registered user details",
-                        "schema": {
-                            "$ref": "#/definitions/service_models.User"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request parameters",
-                        "schema": {
-                            "$ref": "#/definitions/gateway.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/gateway.ErrorResponse"
                         }
@@ -767,7 +838,6 @@ const docTemplate = `{
             }
         },
         "service_models.ChangePassword": {
-            "description": "The structure for changing the user's password",
             "type": "object",
             "required": [
                 "current_password",
@@ -905,17 +975,24 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
-	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Version:          "1.0",
+	Host:             "localhost:8080",
+	BasePath:         "/",
+	Schemes:          []string{"http", "https"},
+	Title:            "Golang Web API",
+	Description:      "This is a web API server.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

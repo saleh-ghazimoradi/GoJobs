@@ -5,14 +5,13 @@ import (
 	"net/http"
 )
 
-// healthCheckHandler godoc
-// @Summary Health Check Endpoint
-// @Description This endpoint returns the health status of the application, including environment and version information.
-// @Tags health
-// @Accept json
+// healthCheckHandler handles the health check request and returns the application's status, environment, and version.
+// @Summary Health check endpoint
+// @Description Returns the current status of the application, including its environment and version details.
+// @Tags Health
 // @Produce json
-// @Success 200 {object} map[string]string "OK"
-// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Success 200 {object} map[string]string "Health check status, environment, and version"
+// @Failure 500 {object} ErrorResponse "Internal Server Error"
 // @Router /v1/healthcheck [get]
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	data := map[string]string{

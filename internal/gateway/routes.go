@@ -14,12 +14,13 @@ import (
 	"net/http"
 )
 
-// @title GoJobs API
-// @version 1.0
+// @title Golang Web API
 // @description This is a web API server.
+// @version 1.0
+// @host localhost:8080
 // @BasePath /
 // @schemes http https
-// @securityDefinitions.apikey AuthBearer
+// @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
 func registerRoutes() http.Handler {
@@ -66,6 +67,14 @@ func registerRoutes() http.Handler {
 	return router
 }
 
+// SetupSwagger
+// Swagger UI Route
+// @Summary Swagger Documentation
+// @Description Provides access to the Swagger UI
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "Swagger UI"
+// @Router /swagger [get]
 func SetupSwagger() http.Handler {
 	docs.SwaggerInfo.Title = "Golang Web API"
 	docs.SwaggerInfo.Description = "This is a web API server."
