@@ -44,6 +44,7 @@ func (a *authenticate) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err = jsonResponse(w, http.StatusOK, token); err != nil {
 		internalServerError(w, r, err)
+		return
 	}
 
 }
@@ -65,10 +66,12 @@ func (a *authenticate) registerHandler(w http.ResponseWriter, r *http.Request) {
 	var registerAuthPayload service_models.RegisterAuthPayload
 	if err := readJSON(w, r, &registerAuthPayload); err != nil {
 		badRequestResponse(w, r, err)
+		return
 	}
 
 	if err := Validate.Struct(registerAuthPayload); err != nil {
 		badRequestResponse(w, r, err)
+		return
 	}
 
 	us := &service_models.User{
@@ -79,10 +82,12 @@ func (a *authenticate) registerHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := a.authService.RegisterUser(ctx, us); err != nil {
 		internalServerError(w, r, err)
+		return
 	}
 
 	if err := jsonResponse(w, http.StatusCreated, us); err != nil {
 		internalServerError(w, r, err)
+		return
 	}
 }
 
