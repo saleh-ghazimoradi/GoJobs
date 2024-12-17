@@ -30,26 +30,33 @@ func registerRoutes() http.Handler {
 	}
 
 	userDB := repository.NewUserRepository(db, db)
+	jobDB := repository.NewJobRepository(db, db)
+
 	userService := service.NewUserService(userDB)
-	userHandler := NewUserHandler(userService)
+	jobService := service.NewJobService(jobDB)
 	authService := service.NewAuthenticateService(userDB)
+
+	userHandler := NewUserHandler(userService)
+	jobHandler := NewJob(jobService)
 	authHandler := NewAuthenticateHandler(authService)
 
-	jobDB := repository.NewJobRepository(db, db)
-	jobService := service.NewJobService(jobDB)
-	jobHandler := NewJob(jobService)
-
 	router := httprouter.New()
+
 	router.NotFound = http.HandlerFunc(notFoundRouter)
 	router.MethodNotAllowed = http.HandlerFunc(methodNotAllowedResponse)
+
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", healthCheckHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/forgotpassword", authHandler.ForgotPasswordHandler)
 
 	router.HandlerFunc(http.MethodPost, "/v1/login", authHandler.loginHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/register", authHandler.registerHandler)
+
 	router.Handler(http.MethodGet, "/v1/users/:id", AuthMiddleware(http.HandlerFunc(userHandler.getUserByIdHandler)))
 	router.Handler(http.MethodPut, "/v1/users/:id", AuthMiddleware(http.HandlerFunc(userHandler.UpdateUserProfileHandler)))
 	router.Handler(http.MethodPost, "/v1/users/:id/picture", AuthMiddleware(http.HandlerFunc(userHandler.UpdateUserProfilePictureHandler)))
+	router.Handler(http.MethodGet, "/v1/users", AuthMiddleware(http.HandlerFunc(userHandler.GetAllUsersHandler)))
+	router.Handler(http.MethodDelete, "/v1/users/:id", AuthMiddleware(http.HandlerFunc(userHandler.DeleteUserHandler)))
+	router.Handler(http.MethodPut, "/v1/users/:id/changePassword", AuthMiddleware(http.HandlerFunc(userHandler.ChangePasswordHandler)))
 
 	router.HandlerFunc(http.MethodGet, "/v1/jobs", jobHandler.GetAllJobsHandler)
 	router.Handler(http.MethodPost, "/v1/jobs", AuthMiddleware(http.HandlerFunc(jobHandler.CreateJobHandler)))
@@ -58,12 +65,9 @@ func registerRoutes() http.Handler {
 	router.Handler(http.MethodPut, "/v1/jobs/:id", AuthMiddleware(http.HandlerFunc(jobHandler.UpdateJobHandler)))
 	router.Handler(http.MethodDelete, "/v1/jobs/:id", AuthMiddleware(http.HandlerFunc(jobHandler.DeleteJobHandler)))
 
-	router.Handler(http.MethodGet, "/v1/users", AuthMiddleware(http.HandlerFunc(userHandler.GetAllUsersHandler)))
-	router.Handler(http.MethodDelete, "/v1/users/:id", AuthMiddleware(http.HandlerFunc(userHandler.DeleteUserHandler)))
-	router.Handler(http.MethodPut, "/v1/users/:id/changePassword", AuthMiddleware(http.HandlerFunc(userHandler.ChangePasswordHandler)))
-
 	swaggerHandler := SetupSwagger()
 	router.Handler(http.MethodGet, "/swagger/*any", swaggerHandler)
+
 	return router
 }
 
