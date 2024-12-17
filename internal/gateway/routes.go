@@ -68,7 +68,7 @@ func registerRoutes() http.Handler {
 	swaggerHandler := SetupSwagger()
 	router.Handler(http.MethodGet, "/swagger/*any", swaggerHandler)
 
-	return router
+	return recoverPanic(router)
 }
 
 // SetupSwagger
