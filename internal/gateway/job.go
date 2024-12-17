@@ -44,7 +44,7 @@ func (j *job) CreateJobHandler(w http.ResponseWriter, r *http.Request) {
 
 	createdJob, err := j.jobService.CreateJob(ctx, &jobs)
 	if err != nil {
-		badRequestResponse(w, r, err)
+		internalServerError(w, r, err)
 		return
 	}
 
@@ -70,10 +70,12 @@ func (j *job) GetAllJobsHandler(w http.ResponseWriter, r *http.Request) {
 	jobs, err := j.jobService.GetAllJobs(ctx)
 	if err != nil {
 		internalServerError(w, r, err)
+		return
 	}
 
 	if err = jsonResponse(w, http.StatusOK, jobs); err != nil {
 		internalServerError(w, r, err)
+		return
 	}
 }
 
@@ -94,10 +96,12 @@ func (j *job) GetAllJobsByUserHandler(w http.ResponseWriter, r *http.Request) {
 	jobs, err := j.jobService.GetAllJobsByUserID(ctx, userID)
 	if err != nil {
 		internalServerError(w, r, err)
+		return
 	}
 
 	if err = jsonResponse(w, http.StatusOK, jobs); err != nil {
 		internalServerError(w, r, err)
+		return
 	}
 }
 
@@ -128,6 +132,7 @@ func (j *job) GetJobByIdHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err = jsonResponse(w, http.StatusOK, jobs); err != nil {
 		internalServerError(w, r, err)
+		return
 	}
 }
 
@@ -144,6 +149,7 @@ func (j *job) GetJobByIdHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse "Internal Server Error"
 // @Router /v1/jobs/{id} [put]
 func (j *job) UpdateJobHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO:Fix the issue of update in the update Job handler
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	id, err := readIDParam(r)
@@ -210,6 +216,7 @@ func (j *job) DeleteJobHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err = jsonResponse(w, http.StatusOK, "the job was successfully deleted"); err != nil {
 		internalServerError(w, r, err)
+		return
 	}
 }
 
